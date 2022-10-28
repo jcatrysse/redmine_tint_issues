@@ -19,6 +19,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-require 'redmine_tint_issues/patches/issue_patch'
-require 'redmine_tint_issues/patches/application_helper_patch'
-require 'redmine_tint_issues/hooks/hooks_views'
+require_relative 'redmine_tint_issues/patches/issue_patch'
+require_relative 'redmine_tint_issues/patches/application_helper_patch'
+require_relative 'redmine_tint_issues/hooks/css_hooks'

@@ -29,25 +29,28 @@
 # 1.2.1
 #       bug fix: virgin plugin was trying to read plugin settings value, which do not exist
 #     
-
+# 1.3.0
+#       supports Redmine5
+# 1.3.1
+#       adpated css: table list border collapse
+# 1.3.2
+#       corrected typo in locales
+#
 require 'redmine'
+require_relative "lib/redmine_tint_issues"
 
 Redmine::Plugin.register :redmine_tint_issues do
   name 'Redmine Tint Issues'
   author 'Stephan Wenzel'
   description 'Plugin for Redmine to tint issues by age and due date'
-  version '1.2.1'
+  version '1.3.2'
   url 'https://github.com/HugoHasenbein/redmine_tint_issues'
   author_url 'https://github.com/HugoHasenbein/redmine_tint_issues'
-
+  
   project_module :redmine_tint_issues do
     permission :view_issue_tint, {}, {:public => :true}
   end
-
-  settings :default => { 
-                       },
+  
+  settings :default => { },
            :partial => 'redmine_tint_issues_plugin_settings/settings'
 end
-
-require "redmine_tint_issues"
-
