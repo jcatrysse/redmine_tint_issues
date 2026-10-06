@@ -145,19 +145,16 @@
   <p>
     <%= label_tag( 'settings[age_by_creation_date]', l('redmine_tint_issues.label_age_by_creation_date')) %>
     <%= radio_button_tag( 'settings[age_by_creation_date]', '1', settings['age_by_creation_date'] == '1') %>
-    <%= content_tag(:a,    l(:label_help), :href => "#", :class => "icon icon-help", :title => l(:label_help), :onclick => "$('#help_settings_age_by_creation_date').toggle(); return false;" ) %>
+    <%= rti_help_link('help_settings_age_by_creation_date') %>
     <%= content_tag(:span, l('redmine_tint_issues.help_settings_age_by_creation_date'), :id => 'help_settings_age_by_creation_date', :style => 'display:none;') %>
   </p>
   <p>
     <%= label_tag( 'settings[age_by_creation_date]', l('redmine_tint_issues.label_age_by_update_date')) %>
     <%= radio_button_tag( 'settings[age_by_creation_date]', '0', settings['age_by_creation_date'] == '0') %>
-    <%= content_tag(:a, l(:label_help), :href => "#", :class => "icon icon-help", :title => l(:label_help), :onclick => "$('#help_settings_age_by_update_date').toggle(); return false;" ) %>
+    <%= rti_help_link('help_settings_age_by_update_date') %>
     <%= content_tag(:span, l('redmine_tint_issues.help_settings_age_by_update_date'), :id => 'help_settings_age_by_update_date', :style => 'display:none;') %>
   </p>
 </fieldset>
 
 <%= javascript_include_tag "jscolor.js", :plugin => "redmine_tint_issues" %>
-
-<%= content_for :header_tags do -%>
-  <%= stylesheet_link_tag "redmine_tint_issues.css", :plugin => "redmine_tint_issues" %>
-<%- end %>
+<%= javascript_tag "jscolor.images = #{rti_jscolor_images.to_json};" %>

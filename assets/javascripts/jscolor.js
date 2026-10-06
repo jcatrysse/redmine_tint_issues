@@ -34,6 +34,13 @@ var jscolor = {
 	},
 
 
+	// url of a picker image: from jscolor.images (filename => url, set by the page when
+	// assets are served with a digest in their name), else from the script directory
+	imageUrl : function(filename) {
+		return (jscolor.images && jscolor.images[filename]) || jscolor.getDir()+filename;
+	},
+
+
 	getDir : function() {
 		if(!jscolor.dir) {
 			var detected = jscolor.detectDir();
@@ -117,7 +124,7 @@ var jscolor = {
 	loadImage : function(filename) {
 		if(!jscolor.imgLoaded[filename]) {
 			jscolor.imgLoaded[filename] = new Image();
-			jscolor.imgLoaded[filename].src = jscolor.getDir()+filename;
+			jscolor.imgLoaded[filename].src = jscolor.imageUrl(filename);
 		}
 	},
 
@@ -786,11 +793,11 @@ var jscolor = {
 				case 0: var padImg = 'hs.png'; break;
 				case 1: var padImg = 'hv.png'; break;
 			}
-			p.padM.style.backgroundImage = "url('"+jscolor.getDir()+"cross.gif')";
+			p.padM.style.backgroundImage = "url('"+jscolor.imageUrl("cross.gif")+"')";
 			p.padM.style.backgroundRepeat = "no-repeat";
-			p.sldM.style.backgroundImage = "url('"+jscolor.getDir()+"arrow.gif')";
+			p.sldM.style.backgroundImage = "url('"+jscolor.imageUrl("arrow.gif")+"')";
 			p.sldM.style.backgroundRepeat = "no-repeat";
-			p.pad.style.backgroundImage = "url('"+jscolor.getDir()+padImg+"')";
+			p.pad.style.backgroundImage = "url('"+jscolor.imageUrl(padImg)+"')";
 			p.pad.style.backgroundRepeat = "no-repeat";
 			p.pad.style.backgroundPosition = "0 0";
 
