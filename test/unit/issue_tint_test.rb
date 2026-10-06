@@ -82,4 +82,14 @@ class IssueTintTest < ActiveSupport::TestCase
     @issue.update_columns(:created_on => Time.now - 3.days)
     tint('current_issue_age' => '1', 'current_issue_age_epoch' => 'days') { assert_includes classes, 'ancient' }
   end
+
+  test "thresholds follow the clock, not the time of the first request" do
+    @issue.update_columns(:created_on => Time.now - 20.hours)
+    tint('current_issue_age' => '1', 'current_issue_age_epoch' => 'days') do
+      assert_includes classes, 'current'
+      travel 5.hours do
+        assert_includes classes, 'ancient'
+      end
+    end
+  end
 end

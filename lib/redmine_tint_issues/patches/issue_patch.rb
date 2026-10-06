@@ -188,10 +188,10 @@ module RedmineTintIssues
 
         def dues_and_ages( key )
         
-           if defined?(@@dues_and_ages) && @@dues_and_ages.present?             
-             if Setting["plugin_redmine_tint_issues"]["ages_calculated"]
-               return @@dues_and_ages[key]
-             end #if
+           # thresholds are dates relative to now: recalculate every minute and when the settings change
+           cache_key = [Setting["plugin_redmine_tint_issues"].to_h, Time.now.to_i / 60]
+           if defined?(@@dues_and_ages_key) && @@dues_and_ages_key == cache_key
+             return @@dues_and_ages[key]
            end #if
           @@dues_and_ages = {}
           
@@ -238,11 +238,7 @@ module RedmineTintIssues
           )
           
           @@dues_and_ages.compact!
-          ###########################################################
-          # the following will not be saved and will cease to exist #
-          # after settings update and/or rails restart              #
-          ###########################################################
-          Setting["plugin_redmine_tint_issues"]["ages_calculated"] = DateTime.now
+          @@dues_and_ages_key = cache_key
           @@dues_and_ages[key]
         end #def
         
