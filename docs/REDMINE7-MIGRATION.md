@@ -27,7 +27,7 @@ what is left. Written 2026-10-06 from a measured analysis (report at the bottom)
 
 ## Already on this branch
 
-- nothing: the branch equals the branch GEOxyz runs today.
+- Settings page fixes (items 1 to 3 below), unit and functional tests (`test/`), e2e scenarios and seed (`test/e2e/`).
 
 ## Work list for the migration session
 
@@ -52,6 +52,8 @@ These GEOxyz commits are on the branch GEOxyz runs today and therefore on this b
 | commit | date | subject |
 |---|---|---|
 | `a7f80d1` | 2025-04-27 | * Resolve typo in html style |
+
+**Verdict `a7f80d1`: kept.** It is a CSS typo fix in the plugin's own settings markup, upstream has nothing newer, core does not do this. No behaviour change. It fixes `width=33%` to `width:33%` in the settings table (inline CSS); verified visually in the settings e2e scenario.
 
 ## After the upgrade (production)
 

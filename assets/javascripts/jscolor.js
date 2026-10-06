@@ -34,10 +34,10 @@ var jscolor = {
 	},
 
 
-	// url of a picker image: from jscolor.images (filename => url, set by the page when
+	// url of a picker image: from jscolor.imageUrls (filename => url, set by the page when
 	// assets are served with a digest in their name), else from the script directory
 	imageUrl : function(filename) {
-		return (jscolor.images && jscolor.images[filename]) || jscolor.getDir()+filename;
+		return (jscolor.imageUrls && jscolor.imageUrls[filename]) || jscolor.getDir()+filename;
 	},
 
 

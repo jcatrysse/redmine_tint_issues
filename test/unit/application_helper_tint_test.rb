@@ -27,7 +27,7 @@ class ApplicationHelperTintTest < Redmine::HelperTest
     assert_select_in html, 'a svg' if respond_to?(:sprite_icon)
   end
 
-  test "jscolor images are served by their digested asset path" do
+  test "jscolor image urls are served by their digested asset path" do
     images = rti_jscolor_images
     if Redmine::VERSION::MAJOR >= 6
       assert_equal %w(arrow.gif cross.gif hs.png hv.png), images.keys.sort
