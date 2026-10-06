@@ -18,7 +18,7 @@ what is left. Written 2026-10-06 from a measured analysis (report at the bottom)
 | Plugin id | `redmine_tint_issues` |
 | GEOxyz runs today | `master` |
 | Upstream | HugoHasenbein/redmine_tint_issues master @ 3d71bdc6166b9ad9334e2cfa67de60d1c308a9b3 (2022-07-01) |
-| Runs on Redmine 7 as is | JA |
+| Runs on Redmine 7 as is | JA (settings page cosmetics fixed on this branch) |
 | Upstream sync | UPSTREAM DOOD: nothing; fork = upstream 1.3.2 + 1 typo fix |
 | After sync | n.v.t. |
 | Complexity (1 trivial .. 5 rewrite) | 1 |
@@ -55,11 +55,62 @@ These GEOxyz commits are on the branch GEOxyz runs today and therefore on this b
 
 **Verdict `a7f80d1`: kept.** It is a CSS typo fix in the plugin's own settings markup, upstream has nothing newer, core does not do this. No behaviour change. It fixes `width=33%` to `width:33%` in the settings table (inline CSS); verified visually in the settings e2e scenario.
 
+## Results (2026-10-06, branch `redmine70-migration`)
+
+**Work list**
+
+| item | result |
+|---|---|
+| 1 jscolor images under Propshaft | fixed: `jscolor.imageUrls` (filename to digested `asset_path`), `rti_jscolor_images` helper, picker shown with colour square in the e2e screenshot `settings-picker.png`. jscolor already owns `jscolor.images`, hence the name. Redmine < 6 keeps the script directory detection. |
+| 2 missing `redmine_tint_issues.css` | removed from the settings partial |
+| 3 `icon icon-help` | `rti_help_link`: `sprite_icon('help')` with `icon-only icon-help` on Redmine >= 6, old markup before |
+| 4 tests on PG and MariaDB | see numbers below |
+| 5 webhooks | checked: the plugin only adds CSS classes to list rows (`Issue#css_classes`) and a settings page; it hides, adds and changes no issue data and no API output. Core's `issues/show.api.rsb` webhook payload needs nothing from the plugin. Nothing to do. |
+| 6 every function by hand | see inventory |
+
+**Numbers**
+
+| | PostgreSQL 16 | MariaDB 10.11 |
+|---|---|---|
+| plugin tests on 7.0-stable-GEOxyz (Redmine 7.0.1, Rails 8.1.3.1, Ruby 3.3.6) | 16 runs, 90 assertions, 0 failures | 16 runs, 90 assertions, 0 failures |
+| e2e (`e2e.sh`: smoke 10, core 6, settings 7, tint-issues 8 screenshots) | 0 problems | 0 problems (`docs/e2e/mariadb/`) |
+
+- Baseline before any change: no tests in the plugin, smoke 10 screenshots and core 6 screenshots, 0 problems. The settings page was not in the smoke (no `app/views/settings`); the picker 404s of the analysis were reproduced as `jscolor.picker` failing (TypeError) once opened.
+- 6.1-stable (PostgreSQL): 16 runs, 77 assertions, 0 failures. 5.1-stable: not run, the checkout needs Ruby < 3.3 and this environment has 3.3.6 only. The 5.1 paths (`respond_to?(:sprite_icon)`, `Redmine::VERSION::MAJOR >= 6`) are covered by the 6.1 not 5.1 run only, say so when merging to a 5.1 line.
+- No migrations, so nothing to run down and up. Production mode boots and eager loads (the e2e server runs in production mode).
+- Together with the other GEOxyz plugins: not run (no other plugin checkouts attached); the plugin only patches `Issue#css_classes` and adds two helper methods to ApplicationHelper (`rti_` prefix), a conflict is unlikely.
+- OpenAI review (`docs/reviews/openai-2026-10-06-3b2b82f.md`): no findings.
+- My own adversarial read of the diff: help link id and picker urls are fixed strings, `to_json` escaped, no params in SQL, no new setting, no schema change.
+
+**Inventory of functions**
+
+| function | how a user reaches it | scenario | screenshots |
+|---|---|---|---|
+| Project module "Tint Issues" (on/off per project) | Project settings, information tab | `tint-issues.mjs` | `tint-issues-module-settings-off`, `-list-after-off`, `-list-after-on`, `-list-module-off` |
+| Row tint by issue age (current, old, older, veryold, ancient), age base creation or update date, start date wins | issue list of a project with the module | `tint-issues.mjs` + unit tests | `tint-issues-list-manager` |
+| Row border by due date (hasduedate, due, moredue, verydue, overdue), none for closed issues | same | same | same |
+| Same for a member without plugin permissions, and an outsider (permission `view_issue_tint` is public and empty: the module decides, not the permission) | issue list as reporter / outsider | same | `tint-issues-list-reporter`, `-list-outsider`, `-outsider-private` |
+| Head CSS hook (`view_layouts_base_html_head`) | every page | covered by the list scenario (computed colours asserted) | |
+| Settings page: thresholds, units, colours, colour picker, help texts, save | Administration, Plugins, Configure | `settings.mjs` + functional test | `settings-page`, `-picker`, `-help`, `-saved`, `-list-after-save` |
+| Settings refused for non-admin, login redirect for anonymous | same URL | `settings.mjs` | `settings-manager-refused`, `settings-anonymous-login` |
+
+No routes, mail, API, rake tasks or cron jobs exist in this plugin.
+
+**Findings, not fixed (outside the migration, minimal diff rule)**
+
+1. `dues_and_ages` caches the thresholds as absolute dates in a class variable (`@@dues_and_ages`) until the settings change or the process restarts. A long running process therefore keeps comparing against the date of its first request ("younger than 1 day" drifts). Upstream behaviour, present on Redmine 5.1 too. Recommended: compute per request (cheap) or key the cache on the date. Not changed here because it changes behaviour users may rely on; see "Open questions for Jan".
+2. Core already adds `overdue` to the row, so the plugin's own `overdue` is a duplicate; harmless, and the red border stays when the module is off (core's own style).
+3. `.codex/test_setup.sh` fails as root (`$SUDO -u postgres` with an empty `$SUDO`); here the role was created by hand. Playwright must match the installed Chromium build (`npm install -g playwright@1.56` for `/opt/pw-browsers`). `start_server.sh --reset` can leave a database in which the default data are refused ("already loaded") after an aborted first run; a fresh `RMP_SERVER_DB_NAME` avoids it.
+
+## Open questions for Jan
+
+1. Fix the stale threshold cache (finding 1)? Options: leave as is (identical to what GEOxyz runs today), or compute thresholds per request. Recommendation: fix it in a separate change, it is a real drift bug, but it is not needed for Redmine 7 and changes when rows change colour.
+
 ## After the upgrade (production)
 
 Actions the person doing the upgrade must take, or know about, for this plugin:
 
-- None known. Add here what the session finds.
+- None. No migrations, no new settings, no cron. After deploying, the plugin assets are precompiled with the rest of Redmine's assets (Propshaft), nothing extra to do. The existing plugin settings are used unchanged.
 
 ## How to test
 
