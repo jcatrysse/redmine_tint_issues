@@ -59,7 +59,7 @@ await t.settle();
 await t.go(LIST);
 rs = await rows(t.page);
 expect(by(rs, 'E2E related issue').cls.every(c => c !== 'veryold'), 'tint remains after switching the module off');
-await t.shot('list-after-off', 'After switching the module off the tint is gone (only core's own red overdue border of #4 remains)');
+await t.shot('list-after-off', 'After switching the module off the tint is gone (only the red overdue border of core on #4 remains)');
 await t.go('/projects/e2e-project/settings');
 await t.page.check('#project_enabled_module_names_redmine_tint_issues');
 await t.page.click('form.edit_project input[type=submit][name=commit]');
