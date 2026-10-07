@@ -51,28 +51,22 @@ module RedmineTintIssues
             rgb[2] = [(rgb[2].to_i + 255 * amount).round, 255].min
             "#%02x%02x%02x" % rgb
           end #def
+          
           # ------------------------------------------------------------------------------#
-          # link toggling a help text; Redmine >= 6 draws icons with an svg sprite
+          # link toggling a help text
           # ------------------------------------------------------------------------------#
           def rti_help_link(target_id)
-            options = {:href => "#", :title => l(:label_help), :onclick => "$('##{target_id}').toggle(); return false;"}
-            if respond_to?(:sprite_icon)
-              content_tag(:a, sprite_icon('help', l(:label_help)), options.merge(:class => "icon-only icon-help"))
-            else
-              content_tag(:a, l(:label_help), options.merge(:class => "icon icon-help"))
-            end
+            content_tag(:a, sprite_icon('help', l(:label_help)), :href => "#", :class => "icon-only icon-help", :title => l(:label_help), :onclick => "$('##{target_id}').toggle(); return false;")
           end #def
           
           # ------------------------------------------------------------------------------#
           # picker images by file name, for assets which are served with a digest in the name
           # ------------------------------------------------------------------------------#
           def rti_jscolor_images
-            return {} unless Redmine::VERSION::MAJOR >= 6
             %w(hs.png hv.png cross.gif arrow.gif).each_with_object({}) do |file, images|
               images[file] = asset_path("plugin_assets/redmine_tint_issues/#{file}")
             end
           end #def
-          
           
         end #base
         

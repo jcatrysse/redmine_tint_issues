@@ -24,16 +24,12 @@ class ApplicationHelperTintTest < Redmine::HelperTest
   test "help link toggles its target and carries the help label" do
     html = rti_help_link('help_x')
     assert_select_in html, 'a[href="#"][onclick*="#help_x"][title=?]', ::I18n.t(:label_help)
-    assert_select_in html, 'a svg' if respond_to?(:sprite_icon)
+    assert_select_in html, 'a svg'
   end
 
   test "jscolor image urls are served by their digested asset path" do
     images = rti_jscolor_images
-    if Redmine::VERSION::MAJOR >= 6
-      assert_equal %w(arrow.gif cross.gif hs.png hv.png), images.keys.sort
-      images.each_value { |url| assert_match %r{\A/assets/plugin_assets/redmine_tint_issues/\w+-[0-9a-f]+\.(png|gif)\z}, url }
-    else
-      assert_equal({}, images)
-    end
+    assert_equal %w(arrow.gif cross.gif hs.png hv.png), images.keys.sort
+    images.each_value { |url| assert_match %r{\A/assets/plugin_assets/redmine_tint_issues/\w+-[0-9a-f]+\.(png|gif)\z}, url }
   end
 end

@@ -92,4 +92,15 @@ class IssueTintTest < ActiveSupport::TestCase
       end
     end
   end
+
+  test "css_classes is prepended, so it coexists with other plugins prepending the same method" do
+    mod = RedmineTintIssues::Patches::IssuePatch::InstanceMethods
+    assert_operator Issue.ancestors.index(mod), :<, Issue.ancestors.index(Issue)
+    other = Module.new { def css_classes(user = User.current); super(user) << ' other-plugin'; end }
+    Issue.prepend(other)
+    tint('current_issue_age' => '1', 'current_issue_age_epoch' => 'days') do
+      assert_includes classes, 'other-plugin'
+      assert_includes classes, 'current'
+    end
+  end
 end

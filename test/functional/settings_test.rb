@@ -17,7 +17,7 @@ class TintIssuesSettingsTest < Redmine::ControllerTest
     %w(due_since moredue_since verydue_since).each { |a| assert_select "select[name=?]", "settings[#{a}_epoch]" }
     assert_select "input[name='settings[age_by_creation_date]'][type=radio]", 2
     assert_select 'a[onclick*="help_settings_age_by_creation_date"]'
-    assert_select 'script', :text => /jscolor\.imageUrls = \{.*hs\.png/m if Redmine::VERSION::MAJOR >= 6
+    assert_select 'script', :text => /jscolor\.imageUrls = \{.*hs\.png/m
     assert_no_match(/redmine_tint_issues\.css/, response.body)
   end
 

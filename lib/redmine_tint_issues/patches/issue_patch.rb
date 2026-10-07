@@ -23,25 +23,10 @@ module RedmineTintIssues
   module Patches
     module IssuePatch
     
-      def self.included(base)
-        base.send(:include, InstanceMethods)
-        
-        base.class_eval do
-        
-          if Rails::VERSION::MAJOR >= 5
-           alias_method        :css_classes_without_tint_issues, :css_classes
-           alias_method        :css_classes, :css_classes_with_tint_issues
-          else
-            alias_method_chain :css_classes, :tint_issues
-          end
-          
-        end
-      end #self
-      
       module InstanceMethods
       
-        def css_classes_with_tint_issues(user=User.current)
-          s = css_classes_without_tint_issues(user)
+        def css_classes(user=User.current)
+          s = super(user)
           if self.project.module_enabled?(:redmine_tint_issues)
             s << self.issue_age.to_s
             s << self.issue_due.to_s
@@ -247,6 +232,7 @@ module RedmineTintIssues
   end #module
 end #module
 
-unless Issue.included_modules.include?(RedmineTintIssues::Patches::IssuePatch)
-    Issue.send(:include, RedmineTintIssues::Patches::IssuePatch)
+# prepended, not alias_method'd: other plugins prepend to Issue#css_classes as well
+unless Issue.ancestors.include?(RedmineTintIssues::Patches::IssuePatch::InstanceMethods)
+    Issue.prepend(RedmineTintIssues::Patches::IssuePatch::InstanceMethods)
 end

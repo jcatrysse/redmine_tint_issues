@@ -55,6 +55,15 @@ These GEOxyz commits are on the branch GEOxyz runs today and therefore on this b
 
 **Verdict `a7f80d1`: kept.** It is a CSS typo fix in the plugin's own settings markup, upstream has nothing newer, core does not do this. No behaviour change. It fixes `width=33%` to `width:33%` in the settings table (inline CSS); verified visually in the settings e2e scenario.
 
+## Decided by Jan (2026-10-07), see docs/DECISIONS-2026-10-07.md
+
+- No backports to 5.1, no 5.1 code paths; `redmine70-migration` is what goes live with Redmine 7.
+- PostgreSQL 16 only: tests and e2e on PostgreSQL; MariaDB/MySQL runs are no longer required (the earlier MariaDB run stays as extra evidence).
+- Core methods that other plugins patch are patched with `prepend`, never `alias_method`.
+- GitHub Actions manual only.
+
+**Built for this:** `redmine_agile` (jcatrysse, `redmine70-migration`) also patches `Issue#css_classes`, with `prepend`; this plugin used `alias_method` on the same method, which recurses when both are loaded. `Issue#css_classes` is now patched with `prepend` (`IssuePatch::InstanceMethods`), test `css_classes is prepended...` fails with the old code. The `alias_method_chain` branch is gone. The 5.1-only guards I had added (`respond_to?(:sprite_icon)`, `MAJOR >= 6`) are removed. Other checked plugins (checklists, itil_priority, inline_edit_issues, context_menu_actions, issue_view_columns, parent_child_filters, subtask, issue_field_visibility, contacts_helpdesk) only call `css_classes` or patch `Journal#css_classes`, none patches `Issue#css_classes`; the other ~40 plugins were not searched. **Not done:** the run with redmine_agile installed (Project > Settings, issue list, issue page answer 200): installing and running another repository's code in this environment was refused by the permission classifier; run it with `RMP_EXTRA_PLUGINS` or the coordinator's harness.
+
 ## Results (2026-10-06, branch `redmine70-migration`)
 
 **Work list**
