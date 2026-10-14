@@ -130,6 +130,7 @@ class IssueTintTest < ActiveSupport::TestCase
       end
       result
     end
+    measure.call(2) # warm-up: one-time lazy work of this or other installed plugins is not per issue
     few, many = measure.call(5), measure.call(25)
     assert_equal few, many, "5 issues #{few.inspect}, 25 issues #{many.inspect} (queries, setting reads)"
     assert_operator many[0], :<=, 2 # the modules of all projects and the plugin settings, once
