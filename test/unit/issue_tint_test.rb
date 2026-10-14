@@ -13,6 +13,7 @@ class IssueTintTest < ActiveSupport::TestCase
   end
 
   def tint(settings = {}, &block)
+    RedmineTintIssues::Current.reset
     with_settings({'plugin_redmine_tint_issues' => {'age_by_creation_date' => '1'}.merge(settings)}, &block)
   end
 
@@ -88,6 +89,7 @@ class IssueTintTest < ActiveSupport::TestCase
     tint('current_issue_age' => '1', 'current_issue_age_epoch' => 'days') do
       assert_includes classes, 'current'
       travel 5.hours do
+        RedmineTintIssues::Current.reset # thresholds are fixed per request
         assert_includes classes, 'ancient'
       end
     end
@@ -102,5 +104,37 @@ class IssueTintTest < ActiveSupport::TestCase
       assert_includes classes, 'other-plugin'
       assert_includes classes, 'current'
     end
+  end
+
+  test "css_classes needs a constant number of queries and setting reads, whatever the number of issues" do
+    counter = Module.new do
+      attr_accessor :tint_reads
+      def [](name)
+        self.tint_reads = tint_reads.to_i + 1 if name == 'plugin_redmine_tint_issues'
+        super
+      end
+    end
+    Setting.singleton_class.prepend(counter)
+    sql = []
+    sub = ActiveSupport::Notifications.subscribe('sql.active_record') do |*, payload|
+      sql << payload[:sql] if payload[:sql] =~ /enabled_modules|"settings"|`settings`/
+    end
+    measure = lambda do |n|
+      issues = Array.new(n) { Issue.find(1) } # each with a project of its own
+      result = nil
+      tint('current_issue_age' => '1', 'current_issue_age_epoch' => 'days', 'due_since' => '3', 'due_since_epoch' => 'days') do
+        sql.clear
+        Setting.tint_reads = 0
+        issues.each(&:css_classes)
+        result = [sql.size, Setting.tint_reads]
+      end
+      result
+    end
+    few, many = measure.call(5), measure.call(25)
+    assert_equal few, many, "5 issues #{few.inspect}, 25 issues #{many.inspect} (queries, setting reads)"
+    assert_operator many[0], :<=, 2 # the modules of all projects and the plugin settings, once
+    assert_operator many[1], :<=, 1
+  ensure
+    ActiveSupport::Notifications.unsubscribe(sub)
   end
 end

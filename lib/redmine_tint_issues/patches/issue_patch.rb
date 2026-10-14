@@ -27,7 +27,7 @@ module RedmineTintIssues
       
         def css_classes(user=User.current)
           s = super(user)
-          if self.project.module_enabled?(:redmine_tint_issues)
+          if RedmineTintIssues::Current.module_enabled?(self.project_id)
             s << self.issue_age.to_s
             s << self.issue_due.to_s
           end
@@ -39,7 +39,7 @@ module RedmineTintIssues
 ##########################################################################################
         
         def age_base
-          Setting['plugin_redmine_tint_issues']['age_by_creation_date'] == '0' ?  self.updated_on : self.created_on
+          RedmineTintIssues::Current.settings['age_by_creation_date'] == '0' ?  self.updated_on : self.created_on
         end
         
         def issue_age
@@ -172,59 +172,58 @@ module RedmineTintIssues
 ##########################################################################################
 
         def dues_and_ages( key )
+          (RedmineTintIssues::Current.dues_and_ages ||= calculate_dues_and_ages)[key]
+        end #def
         
-           # thresholds are dates relative to now: recalculate every minute and when the settings change
-           cache_key = [Setting["plugin_redmine_tint_issues"].to_h, Time.now.to_i / 60]
-           if defined?(@@dues_and_ages_key) && @@dues_and_ages_key == cache_key
-             return @@dues_and_ages[key]
-           end #if
-          @@dues_and_ages = {}
+        # thresholds are dates relative to now: calculated once per request
+        def calculate_dues_and_ages
+          settings = RedmineTintIssues::Current.settings
+          ages = {}
           
-          @@dues_and_ages.merge!( :due_since => getfuturedate(
-              Setting["plugin_redmine_tint_issues"]["due_since"], 
-              Setting["plugin_redmine_tint_issues"]["due_since_epoch"]
+          ages.merge!( :due_since => getfuturedate(
+              settings["due_since"], 
+              settings["due_since_epoch"]
             )
           )
           
-          @@dues_and_ages.merge!( :moredue_since => getfuturedate(
-              Setting["plugin_redmine_tint_issues"]["moredue_since"], 
-              Setting["plugin_redmine_tint_issues"]["moredue_since_epoch"]
+          ages.merge!( :moredue_since => getfuturedate(
+              settings["moredue_since"], 
+              settings["moredue_since_epoch"]
             )
           )
           
-          @@dues_and_ages.merge!( :verydue_since => getfuturedate(
-              Setting["plugin_redmine_tint_issues"]["verydue_since"], 
-              Setting["plugin_redmine_tint_issues"]["verydue_since_epoch"]
+          ages.merge!( :verydue_since => getfuturedate(
+              settings["verydue_since"], 
+              settings["verydue_since_epoch"]
             )
           )
           
-          @@dues_and_ages.merge!( :current_issue_age => getpastdate(
-              Setting["plugin_redmine_tint_issues"]["current_issue_age"], 
-              Setting["plugin_redmine_tint_issues"]["current_issue_age_epoch"]
+          ages.merge!( :current_issue_age => getpastdate(
+              settings["current_issue_age"], 
+              settings["current_issue_age_epoch"]
             )
           )
           
-          @@dues_and_ages.merge!( :old_issue_age => getpastdate(
-              Setting["plugin_redmine_tint_issues"]["old_issue_age"], 
-              Setting["plugin_redmine_tint_issues"]["old_issue_age_epoch"]
+          ages.merge!( :old_issue_age => getpastdate(
+              settings["old_issue_age"], 
+              settings["old_issue_age_epoch"]
             )
           )
         
-          @@dues_and_ages.merge!( :older_issue_age => getpastdate(
-              Setting["plugin_redmine_tint_issues"]["older_issue_age"], 
-              Setting["plugin_redmine_tint_issues"]["older_issue_age_epoch"]
+          ages.merge!( :older_issue_age => getpastdate(
+              settings["older_issue_age"], 
+              settings["older_issue_age_epoch"]
             )
           )
           
-          @@dues_and_ages.merge!( :veryold_issue_age => getpastdate(
-              Setting["plugin_redmine_tint_issues"]["veryold_issue_age"], 
-              Setting["plugin_redmine_tint_issues"]["veryold_issue_age_epoch"]
+          ages.merge!( :veryold_issue_age => getpastdate(
+              settings["veryold_issue_age"], 
+              settings["veryold_issue_age_epoch"]
             )
           )
           
-          @@dues_and_ages.compact!
-          @@dues_and_ages_key = cache_key
-          @@dues_and_ages[key]
+          ages.compact!
+          ages
         end #def
         
       end #module
